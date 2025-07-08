@@ -1,60 +1,54 @@
 use futures::{SinkExt, StreamExt}; // add .next() to read and .send() to write on streams and sinks
 use log::*; // logging macros for runtime msgs
-use tokio::net::{TcpListener, TcpStream}; //Listener: accept new cxns, Stream: a cxn
-use tokio_tungstenite::accept_async;
-use tokio_tungstenite::tungstenite::Message; //Message enum defines types of messages sent/received // async upgrades raw TcpStream into WebSocket cxn
+use std::env;
+use warp::ws::Message; //Message enum defines types of messages sent/received
+use warp::Filter;
 
 #[tokio::main] // tokio-powered async runtime
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    env_logger::init(); // print logging macros
-    let addr = "0.0.0.0:9001";
-    let listener = TcpListener::bind(addr).await?; // bind listeners to port 9001, wait till binding completes or error
-    info!("WebSocket server listening on ws://{}", addr);
+async fn main() -> anyhow::Result<()> {
+    // initalise logging output
+    env_logger::init();
 
-    while let Ok((stream, _)) = listener.accept().await {
-        // wait for a new cxn. on success, return (TcpStream, SocketAddr)
-        tokio::spawn(handle_connection(stream));
-        // spawn new async task to handle this in parallel. so can handle others simul.
-    }
-    Ok(())
-}
+    // read port number from Render
+    let port: u16 = env::var("PORT")?.parse()?;
 
-async fn handle_connection(stream: TcpStream) {
-    let peer = stream
-        .peer_addr()
-        .expect("connected streams should have a peer address");
-    info!("New connection from {}", peer);
+    // only match GET /ws requests and upgrade to WebSocket
+    let ws_route = warp::path("ws").and(warp::ws()).map(|ws: warp::ws::Ws| {
+        ws.on_upgrade(|socket| async move {
+            // split socket into sender and receiver
+            let (mut tx, mut rx) = socket.split();
 
-    let ws_stream = match accept_async(stream).await {
-        // attempt websocket handshake over raw stream
-        Ok(ws) => ws,
-        Err(e) => {
-            error!("WebSocket handshake failed: {}", e);
-            return;
-        }
-    };
-
-    let (mut write, mut read) = ws_stream.split();
-    // split stream into writer and reader using stream/sink traits
-
-    while let Some(msg) = read.next().await {
-        // fetch next msg
-        match msg {
-            Ok(Message::Text(text)) => {
-                // extract string from msg
-                info!("Received from {}: {}", peer, text);
-                if let Err(e) = write.send(Message::Text(text)).await {
-                    error!("Error sending echo: {}", e);
+            // loop over each incoming msg
+            while let Some(Ok(msg)) = rx.next().await {
+                if msg.is_text() {
+                    let reply = format!("echo: {}", msg.to_str().unwrap_or(""));
+                    let _ = tx.send(Message::text(reply)).await;
+                } else if msg.is_binary() {
+                    let mut prefixed = b"echo: ".to_vec();
+                    prefixed.extend_from_slice(&msg.as_bytes());
+                    let _ = tx.send(Message::binary(prefixed)).await;
+                } else if msg.is_close() {
                     break;
                 }
             }
-            Ok(Message::Close(_)) => {
-                // client closes
-                info!("{} disconnected", peer);
-                break;
-            }
-            _ => {}
-        }
-    }
-    info!("Connection {} closed.", peer);
+        })
+    });
+
+    // respond to Render health checks
+    let healthz = warp::path("healthz").map(|| warp::reply());
+
+    // static files from frontend folder
+    let static_files = warp::fs::dir("frontend");
+
+    // combine routes and log each req
+    let routes = ws_route
+        .or(healthz)
+        .or(static_files)
+        .with(warp::log("rust_ws_chat"));
+
+    // start server on 0.0.0.0:PORT
+    info!("Server running on port {}", port);
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
+
+    Ok(())
 }
