@@ -37,12 +37,16 @@ body {
     max-width: var(--chat-max-width);
     width: 100%;
     height: 100%;
+    min-height: 0;
     flex-direction: column;
+    justify-content: flex-end;
     box-sizing: border-box;  
 }
 
 #messages { 
     flex: 1;
+    flex-direction: column;
+    justify-content: flex-end;
     overflow-y: auto; 
     border: 1px solid #ddd; 
     padding: 0.5rem; 
