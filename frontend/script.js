@@ -4,11 +4,11 @@ const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendButton = document.getElementById("send");
 
-ws.onopen = () => { append("System: Connected to server", "server")};
+ws.onopen = () => { append("System connected to server", "server")};
 
 ws.onmessage = (event) => { append(event.data, "server")};
 
-ws.onclose = () => { append("System: Disconnected", "server")};
+ws.onclose = () => { append("System disconnected", "server")};
 
 ws.onerror = (err) => { console.error("WebSocket error:", err)};
 

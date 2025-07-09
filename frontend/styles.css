@@ -1,11 +1,22 @@
+@font-face {
+    font-family: "Innovator Grotesk";
+    font-display: swap;
+    src: url('https://innovator-grotesk.pages.dev/InnovatorGrotesk-VF.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+  
 body { 
-    font-family: Arial, sans-serif; 
-    background: #f0f0f0; 
+    font-family: "Innovator Grotesk", system-ui, sans-serif;
+    font-variation-settings: 'wght' 560;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 2rem;
+    background: #fff;
     display: flex; 
     justify-content: center; 
     align-items: start; 
-    height: 500px; 
-    margin: 0;
+    height: 400px; 
 }
 
 .chat-container { 

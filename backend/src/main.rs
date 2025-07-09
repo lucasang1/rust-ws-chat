@@ -24,12 +24,11 @@ async fn main() -> anyhow::Result<()> {
             // loop over each incoming msg
             while let Some(Ok(msg)) = rx.next().await {
                 if msg.is_text() {
-                    let reply = format!("echo: {}", msg.to_str().unwrap_or(""));
+                    let reply = msg.to_str().unwrap_or("").to_string();
                     let _ = tx.send(Message::text(reply)).await;
                 } else if msg.is_binary() {
-                    let mut prefixed = b"echo: ".to_vec();
-                    prefixed.extend_from_slice(&msg.as_bytes());
-                    let _ = tx.send(Message::binary(prefixed)).await;
+                    let data = msg.as_bytes().to_vec();
+                    let _ = tx.send(Message::binary(data)).await;
                 } else if msg.is_close() {
                     break;
                 }
