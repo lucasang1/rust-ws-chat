@@ -1,4 +1,5 @@
-const ws = new WebSocket("ws://localhost:9001");
+const protocol = location.protocol === "https:" ? "wss://" : "ws://"
+const ws = new WebSocket(`${protocol}${location.host}/ws`);
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 const sendButton = document.getElementById("send");
