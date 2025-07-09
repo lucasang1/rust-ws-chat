@@ -9,6 +9,9 @@ async fn main() -> anyhow::Result<()> {
     // initalise logging output
     env_logger::init();
 
+    // map / to serve frontend/index.html
+    let index_html = warp::path::end().and(warp::fs::file("../frontend/index.html"));
+
     // read port number from Render
     let port: u16 = env::var("PORT")?.parse()?;
 
@@ -38,11 +41,12 @@ async fn main() -> anyhow::Result<()> {
     let healthz = warp::path("healthz").map(|| warp::reply());
 
     // static files from frontend folder
-    let static_files = warp::fs::dir("frontend");
+    let static_files = warp::fs::dir("../frontend");
 
     // combine routes and log each req
     let routes = ws_route
         .or(healthz)
+        .or(index_html)
         .or(static_files)
         .with(warp::log("rust_ws_chat"));
 
