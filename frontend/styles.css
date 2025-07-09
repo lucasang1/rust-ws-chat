@@ -4,43 +4,79 @@
     src: url('https://innovator-grotesk.pages.dev/InnovatorGrotesk-VF.woff2') format('woff2');
     font-weight: 100 900;
     font-style: normal;
-  }
+}
+
+:root {
+    --chat-max-width: 700px;
+    --chat-radius: 8px;
+    --chat-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --padding: 1rem;
+}
   
 body { 
     font-family: "Innovator Grotesk", system-ui, sans-serif;
     font-variation-settings: 'wght' 560;
     font-size: 1rem;
     line-height: 1.6;
-    margin: 0 2rem;
-    background: #fff;
+    margin: 0;
+    padding: 0;
+    background: transparent;
     display: flex; 
     justify-content: center; 
     align-items: start; 
-    height: 400px; 
+    height: 100%; 
+    width: 100%; 
 }
 
 .chat-container { 
-    background: white; 
-    padding: 1rem; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-    width: 700px; 
+    background: #fff; 
+    display: flex;
+    padding: var(--padding);
+    border-radius: var(--chat-radius);
+    box-shadow: var(--chat-shadow);
+    max-width: var(--chat-max-width);
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    box-sizing: border-box;  
 }
 
 #messages { 
-    height: 200px; 
+    flex: 1;
     overflow-y: auto; 
     border: 1px solid #ddd; 
     padding: 0.5rem; 
     margin-bottom: 0.5rem; 
+    box-sizing: border-box;
 }
 
-#input { width: calc(100% - 60px); }
-
-#send { width: 50px; }
-
-.message { margin: 0.2rem 0; }
-
-.server { color: green; }
-
-.user { color: blue; text-align: right; }
+#input {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  
+  #send {
+    flex: 0 0 60px;
+    margin-left: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .input-row {
+    display: flex;
+    align-items: center;
+  }
+  
+  .message {
+    margin: 0.2rem 0;
+  }
+  
+  .server {
+    color: green;
+  }
+  
+  .user {
+    color: blue;
+    text-align: right;
+  }  
